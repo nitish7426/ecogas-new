@@ -9,8 +9,11 @@ import avatar4 from "../assets/avatar4.jpg";
 
 const Navbar = ({ setSidebar, sidebar }) => {
   const avatars = [avatar1, avatar2, avatar3, avatar4];
-  const { user } = useContext(AuthContext);
+  const { user, setUser } = useContext(AuthContext);
   console.log(user);
+  const logout = () => {
+    setUser(null);
+  };
   return (
     <nav className="flex items-center justify-between h-16 px-4 py-2 w-full">
       <button onClick={() => setSidebar(!sidebar)}>
@@ -18,7 +21,10 @@ const Navbar = ({ setSidebar, sidebar }) => {
       </button>
 
       <DarkMode />
-      <button className="flex items-center gap-2 py-2 px-4 dark:text-slate-100 hover:bg-slate-100  transition-colors dark:hover:bg-slate-800 rounded-md font-medium">
+      <button
+        className="flex items-center gap-2 py-2 px-4 dark:text-slate-100 hover:bg-slate-100  transition-colors dark:hover:bg-slate-800 rounded-md font-medium"
+        onClick={logout}
+      >
         <img
           className="h-8 w-8 bg-slate-500 rounded-full"
           src={avatar1}

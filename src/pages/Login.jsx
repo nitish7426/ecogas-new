@@ -3,16 +3,27 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BiErrorCircle } from "react-icons/bi";
 import { AuthContext } from "../context/ContextProvider";
+import { Formik, Field, Form, ErrorMessage } from "formik";
+import * as yup from "yup";
 
 const Login = () => {
   const { user, setUser } = useContext(AuthContext);
   const [isError, setIsError] = useState(false);
-  const [formDetails, setFormDetails] = useState({
+  const initialValues = {
     email: "",
     password: "",
-    userType: "Admin",
+    user_type: "",
+  };
+  const validationSchema = yup.object().shape({
+    email: yup
+      .string()
+      .email("Please enter a valid email")
+      .required("Required"),
+    password: yup.string().min("4").required("Required"),
+    user_type: yup.string().notOneOf(["Select user type"], "Select user type"),
   });
   const typesOBJ = {
+    "Select user type": "",
     Admin: 0,
     Distributor: 2,
     SubDistributor: 6,
@@ -24,11 +35,10 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
     const newFormData = new FormData();
-    newFormData.append("username", formDetails.email);
-    newFormData.append("password", formDetails.password);
-    newFormData.append("user_type", typesOBJ[formDetails.userType]);
+    newFormData.append("username", e.email);
+    newFormData.append("password", e.password);
+    newFormData.append("user_type", typesOBJ[e.user_type]);
     try {
       const { data } = await axios.post(
         "https://api.ecotrack.co.in/login",
@@ -36,11 +46,6 @@ const Login = () => {
       );
       console.log(data);
       setUser(data);
-      setFormDetails({
-        email: "",
-        password: "",
-        userType: "",
-      });
       navigate("/");
     } catch (error) {
       setIsError(true);
@@ -57,70 +62,68 @@ const Login = () => {
   return (
     <section className="min-h-screen w-full flex items-center justify-center px-4 py-6 dark:bg-slate-900 bg-white relative text-slate-900 dark:text-slate-100">
       {isError && <Toast />}
-      <form className="w-80 space-y-4" onSubmit={handleSubmit}>
-        {/* email */}
-        <h3 className="text-center text-4xl font-semibold">Login</h3>
-        <div className="w-full flex flex-col gap-1">
-          <label className="text-sm font-medium">Email</label>
-          <input
-            type="email"
-            placeholder="Enter your email"
-            value={formDetails.email}
-            name="email"
-            required
-            onChange={(e) =>
-              setFormDetails({
-                ...formDetails,
-                [e.target.name]: e.target.value,
-              })
-            }
-            className="py-2 px-4 rounded-md outline-sky-500 border dark:bg-slate-800 dark:border-white/10"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="label text-sm font-medium">Password</label>
-          <input
-            type="password"
-            placeholder="Enter your password"
-            value={formDetails.password}
-            name="password"
-            required
-            onChange={(e) =>
-              setFormDetails({
-                ...formDetails,
-                [e.target.name]: e.target.value,
-              })
-            }
-            className="py-2 px-4 rounded-md outline-sky-500 border dark:bg-slate-800 dark:border-white/10"
-          />
-        </div>
-        {/* select */}
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Select user type</label>
-          <select
-            className="border py-2 px-4 rounded-md outline-sky-500 text-sm font-medium dark:bg-slate-800 dark:border-white/10"
-            value={formDetails.userType}
-            name="userType"
-            onChange={(e) =>
-              setFormDetails({
-                ...formDetails,
-                [e.target.name]: e.target.value,
-              })
-            }
-          >
-            {Object.keys(typesOBJ).map((value, i) => (
-              <option key={i} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
-        </div>
+      <div className="w-full max-w-sm mx-auto overflow-hidden bg-white rounded-lg dark:bg-slate-800">
+        <div className="px-6 py-4">
+          <h3 className="mt-3 text-xl font-medium text-center text-slate-600 dark:text-slate-200">
+            Welcome Back
+          </h3>
 
-        {/* button */}
-        <button className="bg-sky-500 w-full py-2 px-4 rounded-md font-semibold text-white dark:text-slate-900 hover:bg-sky-600 transition-colors">
-          Login
-        </button>
-      </form>
+          <p className="mt-1 text-center text-slate-500 dark:text-slate-400">
+            Login or create account
+          </p>
+
+          <Formik
+            initialValues={initialValues}
+            validationSchema={validationSchema}
+            onSubmit={handleSubmit}
+          >
+            <Form>
+              <div className="w-full mt-4">
+                <InputField
+                  name="email"
+                  type="email"
+                  placeholder="Email Address"
+                />
+              </div>
+              <div className="w-full mt-4">
+                <InputField
+                  name="password"
+                  type="password"
+                  placeholder="Password"
+                />
+              </div>
+
+              <div className="w-full mt-4">
+                <Field
+                  className="input dark:text-slate-100"
+                  name="user_type"
+                  as="select"
+                >
+                  {Object.keys(typesOBJ).map((value, i) => (
+                    <option key={i} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </Field>
+                <p className="text-xs text-red-600 mt-1 ml-2">
+                  <ErrorMessage name="user_type" />
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between mt-4">
+                <a
+                  href="#"
+                  className="text-sm text-slate-600 dark:text-slate-200 hover:text-slate-500"
+                >
+                  Forget Password?
+                </a>
+
+                <button className="button">Sign In</button>
+              </div>
+            </Form>
+          </Formik>
+        </div>
+      </div>
     </section>
   );
 };
@@ -129,9 +132,37 @@ export default Login;
 
 const Toast = () => {
   return (
-    <div className="absolute flex gap-4 py-2 px-4 bg-red-500 rounded-md text-red-100 top-0 my-6 items-center">
-      <span className="">Error accured, Please try again later.</span>
-      <BiErrorCircle size={20} />
+    <div className="flex w-full max-w-sm overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 absolute top-0 m-4">
+      <div className="flex items-center justify-center w-12 bg-red-500 text-white">
+        <BiErrorCircle size={25} />
+      </div>
+
+      <div className="px-4 py-2 -mx-3">
+        <div className="mx-3">
+          <span className="font-semibold text-red-500 dark:text-red-400">
+            Error
+          </span>
+          <p className="text-sm text-gray-600 dark:text-gray-200">
+            Error make sure your credentials are right!
+          </p>
+        </div>
+      </div>
     </div>
+  );
+};
+
+const InputField = ({ name, type, placeholder }) => {
+  return (
+    <>
+      <Field
+        className="input"
+        type={type}
+        name={name}
+        placeholder={placeholder}
+      />
+      <p className="text-xs font-medium ml-2 mt-1 text-red-600">
+        <ErrorMessage name={name} />
+      </p>
+    </>
   );
 };

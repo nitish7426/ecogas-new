@@ -126,3 +126,7 @@ const Fitment = () => {
 };
 
 export default Fitment;
+
+const Table = () => {
+  return <></>;
+};
